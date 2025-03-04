@@ -38,36 +38,51 @@ app.listen(PORT, () => {
     });
 
 const fs = require("fs");
+const readlineSync = require("readline-sync");
 
-class aluno {
-    nome: string;
-    idade: number;
-    nota: number;
-	
-    constructor(nome: string, idade: number, nota: number) {
-        this.nome = nome;
-        this.idade = idade;
-        this.nota = nota;
+console.log(`-------------------------`);
+const quantAlunos = readlineSync.question("Quantos alunos: ");
+console.log(`-------------------------`);
+const alunos = [];
+const minMedia = 7.0;
+
+for (let i = 0; i < quantAlunos; i++) {
+    console.log(`-------------------------`);
+    const nome = readlineSync.question("Nome do aluno: ");
+    console.log(`-------------------------`);
+    const quantNotas = readlineSync.questionInt("Quantas notas: ");
+    console.log(`-------------------------`);
+    const notas = [];
+
+    for (let j = 0; j < quantNotas; j++) {
+        const nota = readlineSync.questionFloat(`Digite a nota ${j + 1}: `);
+        notas.push(nota);
     }
+
+    const media = notas.reduce((a,b) => a + b, 0) / notas.length;
+    const status = media >= minMedia ? "Aprovado" : "Reprovado";
+
+    alunos.push({ nome, notas, media, status });
 }
 
-const aluno1 = new aluno("Guilherme", 15, 8);
-const aluno2 = new aluno("Maria", 16, 9);
-const aluno3 = new aluno("Gabriel", 17, 6);
+function alinharTexto(texto: string | any[], comprimento: number) {
+    return texto + ' '.repeat(comprimento - texto.length);
+}
 
-const alunos = [aluno1, aluno2, aluno3];
+const comprimentoNome = 20;
+const comprimentoNotas = 20;
+const comprimentoMedia = 7;
+const comprimentoStatus = 10;
 
-const somaNotas = alunos.reduce((soma, aluno) => soma + aluno.nota, 0);
+let tabela = `${alinharTexto("Nome", comprimentoNome)}${alinharTexto("Notas", comprimentoNotas)}${alinharTexto("Média", comprimentoMedia)}${alinharTexto("Status", comprimentoStatus)}\n`;
+tabela += `${'-'.repeat(comprimentoNome)}${'-'.repeat(comprimentoNotas)}${'-'.repeat(comprimentoMedia)}${'-'.repeat(comprimentoStatus)}\n`;
 
-const dadosAlunosCSV = alunos.map(aluno => `${aluno.nome},${aluno.idade},${aluno.nota},${somaNotas}`).join('\n');
-const headerCSV = 'Nome,Idade,Nota,Soma das Notas\n';
-const conteudoCSV = headerCSV + dadosAlunosCSV;
+alunos.forEach(aluno => {
+    const notasFormatadas = aluno.notas.join(", ");
+    tabela += `${alinharTexto(aluno.nome, comprimentoNome)}${alinharTexto(notasFormatadas, comprimentoNotas)}${alinharTexto(aluno.media.toFixed(2), comprimentoMedia)}${alinharTexto(aluno.status, comprimentoStatus)}\n`;
+})
 
-fs.writeFile('alunos.csv', conteudoCSV, 'utf8', (err: any) => {
-    if (err) {
-      console.error('Erro ao salvar o arquivo:', err);
-      return;
-    }
-    console.log('Arquivo salvo!');
-	
-});
+fs.writeFileSync("alunos.csv", tabela);
+
+console.log(`-------------------------`);
+console.log("Tabela gerada com sucesso! Verifique o arquivo alunos.csv");
